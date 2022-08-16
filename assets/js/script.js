@@ -259,7 +259,7 @@ var auditTask = function(taskEl) {
   // to ensure element is getting to the function
   var date = $(taskEl).find("span").text().trim();
   // ensure it worked
-  console.log(data);
+  console.log(date);
 
   // convert to moment object at 5:00pm
   var time = moment(date, "L").set("hour", 17);
@@ -277,5 +277,11 @@ var auditTask = function(taskEl) {
   }
 
 };
+
+setInterval(function () {
+  $(".card .list-group-item").each(function(index, el) {
+    auditTask(el);
+  });
+}, 5000);
 
 
