@@ -3,15 +3,12 @@ var tasks = {};
 var createTask = function(taskText, taskDate, taskList) {
   // create elements that make up a task item
   var taskLi = $("<li>").addClass("list-group-item");
-  var taskSpan = $("<span>")
-    .addClass("badge badge-primary badge-pill")
-    .text(taskDate);
-  var taskP = $("<p>")
-    .addClass("m-1")
-    .text(taskText);
+  var taskSpan = $("<span>").addClass("badge badge-primary badge-pill").text(taskDate);
+  var taskP = $("<p>").addClass("m-1").text(taskText);
 
   // append span and p element to parent li
   taskLi.append(taskSpan, taskP);
+
 
 
   // append to ul list on the page
@@ -141,18 +138,22 @@ loadTasks();
 //due date was clicked
 $(".list-group").on("click", "span", function() {
   //get current text
-  var date =$(this)
-    .text()
-    .trim();
+  var date =$(this).text().trim();
 
   // create new input elem
-  var dateInput = $("<input>")
-    .attr("type", "text")
-    .addClass("form-control")
-    .val(date);
+  var dateInput = $("<input>").attr("type", "text").addClass("form-control").val(date);
 
   //swap out elements
   $(this).replaceWith(dateInput);
+  
+  //enable jquery ui datapicker
+  dataInput.datapicker({
+    minDate: 1,
+    onClose: function() {
+      //when calender is closed, force a "change" event on the dataInput
+      $(this).trigger("change");
+    }
+  });
   
   // auto focus on new elem
   dateInput.trigger("focus");
@@ -161,34 +162,28 @@ $(".list-group").on("click", "span", function() {
 
 // value of due date was changed
 
-$(".list-group").on("blur", "input[type='text']", function() {
+$(".list-group").on("change", "input[type='text']", function() {
   // get current text
-  var date = $(this)
-    .val()
-    .trim();
+  var date = $(this).val();
 
   // get the parent ul's id attr
-  var status = $(this)
-    .closest(".list-group")
-    .attr("id")
-    .replace("list-", "");
+  var status = $(this).closest(".list-group").attr("id").replace("list-", "");
 
   // get the tasks pos in the list of other li elem
-  var index = $(this)
-    .closest(".list-group-item")
-    .index();
+  var index = $(this).closest(".list-group-item").index();
 
   // update task in array and re-save to localstorage
   tasks[status][index].date = date;
   saveTasks();
 
   // recreate span elem with bootstrap classes
-  var taskSpan = $("<span>")
-    .addClass("badge badge-primary badge-pill")
-    .text(data);
+  var taskSpan = $("<span>").addClass("badge badge-primary badge-pill").text(data);
 
   //replace input with span elem
   $(this).replaceWith(taskSpan);
+
+  //Pass task's <li> element into auditTask() to check new due date
+  auditTask($(taskSpan).closest(".list-group-item"));
 
 });
 
@@ -246,7 +241,7 @@ $("#trash").droppable({
   tolerance: "touch",
   drop: function(event, ui) {
     ui.draggable.remove();
-    console.log("drop");
+    console.log ("drop");
   },
   over: function(event, ui) {
     console.log ("over");
@@ -255,5 +250,32 @@ $("#trash").droppable({
     console.log("out");
   }
 });
+
+$("#modalDueDate").datepicker({
+  minDate: 1
+});
+
+var auditTask = function(taskEl) {
+  // to ensure element is getting to the function
+  var date = $(taskEl).find("span").text().trim();
+  // ensure it worked
+  console.log(data);
+
+  // convert to moment object at 5:00pm
+  var time = moment(date, "L").set("hour", 17);
+
+  // remove any old classes from element
+  $(taskEl).removeClass("list-group-item-warning list-group-item-danger");
+
+  // apply new class if task is near/over due date
+
+  if (moment().isAfter(time)) {
+    $(taskEl).addClass("list-group-item-danger");
+  }
+  else if (Math.abs(moment().diff(time, "days")) <= 2) {
+    $(taskEl).addClass("list-group-item-warning");
+  }
+
+};
 
 
